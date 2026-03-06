@@ -83,3 +83,8 @@ class PipelineConfig:
     def default(cls) -> PipelineConfig:
         """Create default config with API keys from environment."""
         return cls(api=ApiConfig.from_env())
+
+
+# Demo generation
+DEMO_SLUG_MAX_LENGTH = 50
+DEMO_DEFAULT_CATEGORY = "general"
