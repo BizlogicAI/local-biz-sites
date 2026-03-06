@@ -88,3 +88,41 @@ class PipelineConfig:
 # Demo generation
 DEMO_SLUG_MAX_LENGTH = 50
 DEMO_DEFAULT_CATEGORY = "general"
+
+# Autonomous operation paths
+LOGS_DIR = PROJECT_ROOT / "logs"
+STATE_FILE = PROJECT_ROOT / "state.json"
+
+
+@dataclass(frozen=True)
+class RetryConfig:
+    """Retry behavior configuration."""
+
+    max_attempts: int = 3
+    backoff_base_seconds: float = 2.0
+    max_backoff_seconds: float = 60.0
+
+
+@dataclass(frozen=True)
+class ScheduleConfig:
+    """Schedule configuration for autonomous runs."""
+
+    interval_hours: float = 24.0
+    run_on_start: bool = True
+
+
+@dataclass(frozen=True)
+class AutonomousConfig:
+    """Configuration for autonomous pipeline operation."""
+
+    schedule: ScheduleConfig = field(default_factory=ScheduleConfig)
+    retry: RetryConfig = field(default_factory=RetryConfig)
+    max_run_history: int = 30
+    state_file: Path = STATE_FILE
+    logs_dir: Path = LOGS_DIR
+    pipeline: PipelineConfig = field(default_factory=PipelineConfig.default)
+
+    @classmethod
+    def default(cls) -> AutonomousConfig:
+        """Create default autonomous config with env-loaded API keys."""
+        return cls(pipeline=PipelineConfig.default())

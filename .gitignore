@@ -27,5 +27,12 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Autonomous operation
+logs/
+state.json
+
+# Coverage
+.coverage
+
 # Claude
 .claude/
