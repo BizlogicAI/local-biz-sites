@@ -7,6 +7,7 @@ import uuid
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from scraper.config import (
     DEFAULT_LEADS_CSV,
@@ -157,7 +158,7 @@ class LeadManager:
             raise LeadValidationError(f"Lead with id '{lead.id}' already exists")
         return LeadManager(leads=(*self._leads, lead), csv_path=self._csv_path)
 
-    def update_lead(self, lead_id: str, **updates: object) -> LeadManager:
+    def update_lead(self, lead_id: str, **updates: Any) -> LeadManager:
         """Return a new LeadManager with the specified lead updated."""
         new_leads: list[Lead] = []
         found = False

@@ -6,7 +6,7 @@ import html
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 from scraper.config import DEMO_SLUG_MAX_LENGTH, TEMPLATES_DIR
 from scraper.lead_manager import Lead

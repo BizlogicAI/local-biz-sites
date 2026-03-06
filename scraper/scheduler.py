@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import signal
 import threading
-import time
 from types import FrameType
 
 from scraper.autonomous import AutonomousRunner

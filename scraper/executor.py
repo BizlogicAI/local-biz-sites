@@ -38,7 +38,7 @@ def execute_with_retry(
         ExecutionError: If all retry attempts are exhausted.
         Exception: If a non-retryable error occurs.
     """
-    last_error: BaseException | None = None
+    last_error: Exception | None = None
 
     for attempt in range(1, retry_config.max_attempts + 1):
         try:

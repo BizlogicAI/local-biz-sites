@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass
 from pathlib import Path
 
 from scraper.config import (
@@ -104,22 +104,21 @@ class Pipeline:
         Returns:
             PipelineResult with counts and any errors.
         """
-        errors: list[str] = []
         manager = self._manager
 
         # Stage 1: Discover
-        all_new_leads: list[Lead] = []
-        discovered_count = self._discover(search_specs, all_new_leads, errors)
+        new_leads, discover_errors = self._discover(search_specs)
+        discovered_count = len(new_leads)
 
         # Stage 2: Deduplicate
-        unique_leads, dupes_skipped = _deduplicate(all_new_leads, manager.leads)
+        unique_leads, dupes_skipped = _deduplicate(new_leads, manager.leads)
 
         # Stage 3: Add leads to manager
         for lead in unique_leads:
             manager = manager.add_lead(lead)
 
         # Stage 4: Analyze websites
-        analyzed_count, manager = self._analyze(unique_leads, manager, errors)
+        analyzed_count, analyze_errors, manager = self._analyze(unique_leads, manager)
 
         # Stage 5: Filter for demos (use updated leads from manager)
         lead_map = {lead.id: lead for lead in manager.leads}
@@ -129,10 +128,11 @@ class Pipeline:
         demo_candidates = _filter_for_demos(updated_leads)
 
         # Stage 6: Generate demos
-        demos_count, manager = self._generate(demo_candidates, manager, errors)
+        demos_count, gen_errors, manager = self._generate(demo_candidates, manager)
 
         # Stage 7: Persist
         manager.save_to_csv()
+        all_errors = (*discover_errors, *analyze_errors, *gen_errors)
         logger.info(
             "Pipeline complete: discovered=%d, dupes=%d, analyzed=%d, demos=%d",
             discovered_count,
@@ -146,18 +146,21 @@ class Pipeline:
             duplicates_skipped=dupes_skipped,
             analyzed=analyzed_count,
             demos_generated=demos_count,
-            errors=tuple(errors),
+            errors=all_errors,
         )
 
     def _discover(
         self,
         search_specs: list[SearchSpec],
-        out_leads: list[Lead],
-        errors: list[str],
-    ) -> int:
-        """Run discovery for all search specs. Returns total discovered count."""
+    ) -> tuple[list[Lead], tuple[str, ...]]:
+        """Run discovery for all search specs.
+
+        Returns:
+            Tuple of (discovered_leads, error_messages).
+        """
         discovery = BusinessDiscovery(self._config.api.google_maps_api_key)
-        total = 0
+        found: list[Lead] = []
+        errors: list[str] = []
         for spec in search_specs:
             try:
                 leads = discovery.search(
@@ -165,8 +168,7 @@ class Pipeline:
                     location=spec.location,
                     limit=self._config.batch_size,
                 )
-                out_leads.extend(leads)
-                total += len(leads)
+                found.extend(leads)
                 logger.info(
                     "Discovered %d businesses for '%s' in '%s'",
                     len(leads),
@@ -182,17 +184,21 @@ class Pipeline:
                 )
             if self._config.rate_limit_delay_seconds > 0:
                 time.sleep(self._config.rate_limit_delay_seconds)
-        return total
+        return found, tuple(errors)
 
     def _analyze(
         self,
         leads: list[Lead],
         manager: LeadManager,
-        errors: list[str],
-    ) -> tuple[int, LeadManager]:
-        """Analyze websites for leads that have one. Returns (count, updated_manager)."""
+    ) -> tuple[int, tuple[str, ...], LeadManager]:
+        """Analyze websites for leads that have one.
+
+        Returns:
+            Tuple of (analyzed_count, error_messages, updated_manager).
+        """
         analyzer = WebAnalyzer(timeout_seconds=self._config.request_timeout_seconds)
         analyzed = 0
+        errors: list[str] = []
         for lead in leads:
             if not lead.has_website or not lead.website:
                 continue
@@ -211,17 +217,21 @@ class Pipeline:
                 logger.warning("Analysis failed for %s: %s", lead.name, exc)
             if self._config.rate_limit_delay_seconds > 0:
                 time.sleep(self._config.rate_limit_delay_seconds)
-        return analyzed, manager
+        return analyzed, tuple(errors), manager
 
     def _generate(
         self,
         leads: tuple[Lead, ...],
         manager: LeadManager,
-        errors: list[str],
-    ) -> tuple[int, LeadManager]:
-        """Generate demos for qualifying leads. Returns (count, updated_manager)."""
+    ) -> tuple[int, tuple[str, ...], LeadManager]:
+        """Generate demos for qualifying leads.
+
+        Returns:
+            Tuple of (generated_count, error_messages, updated_manager).
+        """
         generator = DemoGenerator(templates_dir=self._templates_dir)
         generated = 0
+        errors: list[str] = []
         for lead in leads:
             try:
                 demo = generator.generate(lead)
@@ -235,4 +245,4 @@ class Pipeline:
             except DemoGeneratorError as exc:
                 errors.append(f"Demo generation failed for {lead.name}: {exc}")
                 logger.warning("Demo generation failed for %s: %s", lead.name, exc)
-        return generated, manager
+        return generated, tuple(errors), manager
