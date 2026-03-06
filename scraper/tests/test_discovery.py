@@ -13,7 +13,6 @@ from scraper.discovery import (
     DiscoveryError,
     _parse_place,
 )
-from scraper.lead_manager import Lead
 
 
 # --- Sample API responses ---

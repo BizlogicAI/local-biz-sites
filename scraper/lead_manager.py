@@ -80,6 +80,14 @@ CSV_FIELDS = [
 ]
 
 
+def _safe_int(value: str, *, default: int) -> int:
+    """Safely convert a string to int, returning default on failure."""
+    try:
+        return int(value.strip())
+    except (ValueError, AttributeError):
+        return default
+
+
 def _row_to_lead(row: dict[str, str]) -> Lead:
     """Convert a CSV row dict to a Lead, handling type coercion."""
     return Lead(
@@ -91,7 +99,7 @@ def _row_to_lead(row: dict[str, str]) -> Lead:
         location=row.get("location", ""),
         category=row.get("category", ""),
         has_website=row.get("has_website", "").lower() == "true",
-        quality_score=int(row.get("quality_score", "-1")),
+        quality_score=_safe_int(row.get("quality_score", "-1"), default=-1),
         recommendation=row.get("recommendation", ""),
         demo_path=row.get("demo_path", ""),
         status=row.get("status", LEAD_STATUS_DISCOVERED),

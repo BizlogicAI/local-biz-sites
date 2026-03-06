@@ -7,6 +7,7 @@ import logging
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
+from typing import Any
 
 from scraper.config import STATE_FILE
 
@@ -34,7 +35,7 @@ class RunRecord:
     errors: tuple[str, ...] = ()
 
 
-def _record_to_dict(record: RunRecord) -> dict:
+def _record_to_dict(record: RunRecord) -> dict[str, Any]:
     return {
         "started_at": record.started_at,
         "completed_at": record.completed_at,
@@ -46,7 +47,7 @@ def _record_to_dict(record: RunRecord) -> dict:
     }
 
 
-def _dict_to_record(data: dict) -> RunRecord:
+def _dict_to_record(data: dict[str, Any]) -> RunRecord:
     return RunRecord(
         started_at=data.get("started_at", ""),
         completed_at=data.get("completed_at", ""),

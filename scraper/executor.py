@@ -22,7 +22,7 @@ def execute_with_retry(
     func: Callable[[], T],
     *,
     retry_config: RetryConfig,
-    retryable_errors: tuple[type[BaseException], ...] = (),
+    retryable_errors: tuple[type[Exception], ...] = (),
 ) -> T:
     """Execute a callable with exponential backoff retry.
 

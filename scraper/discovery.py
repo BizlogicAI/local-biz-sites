@@ -108,10 +108,11 @@ class BusinessDiscovery:
                         },
                     )
                     response.raise_for_status()
+                    data = response.json()
                 except httpx.HTTPError as exc:
                     raise DiscoveryError(f"API request failed: {exc}") from exc
-
-                data = response.json()
+                except ValueError as exc:
+                    raise DiscoveryError(f"Invalid API response: {exc}") from exc
                 places = data.get("places", [])
 
                 for place in places:

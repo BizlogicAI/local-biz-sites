@@ -5,9 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from scraper.autonomous import AutonomousRunner, RunOutcome
+from scraper.autonomous import AutonomousRunner
 from scraper.config import AutonomousConfig, PipelineConfig, RetryConfig, ScheduleConfig
 from scraper.pipeline import PipelineResult, SearchSpec
 from scraper.state_manager import RunStatus, StateManager

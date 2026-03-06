@@ -181,7 +181,7 @@ class TestLeadManagerFiltering:
     def test_filter_by_status(self, populated_manager: LeadManager) -> None:
         analyzed = populated_manager.get_leads_by_status(LEAD_STATUS_ANALYZED)
         assert len(analyzed) == 2
-        assert all(l.status == LEAD_STATUS_ANALYZED for l in analyzed)
+        assert all(lead.status == LEAD_STATUS_ANALYZED for lead in analyzed)
 
     def test_filter_by_status_empty(self, populated_manager: LeadManager) -> None:
         converted = populated_manager.get_leads_by_status("converted")
@@ -190,7 +190,7 @@ class TestLeadManagerFiltering:
     def test_filter_by_score(self, populated_manager: LeadManager) -> None:
         low_quality = populated_manager.get_leads_by_score(30)
         assert len(low_quality) == 2  # b(20) and d(15), not a(-1 unanalyzed)
-        assert all(l.quality_score <= 30 for l in low_quality)
+        assert all(lead.quality_score <= 30 for lead in low_quality)
 
     def test_filter_by_score_excludes_unanalyzed(
         self, populated_manager: LeadManager
@@ -253,4 +253,4 @@ class TestLeadManagerCsv:
 
         loaded = LeadManager.load_from_csv(csv_path)
         assert len(loaded) == 5
-        assert [l.id for l in loaded.leads] == [f"ord{i}" for i in range(5)]
+        assert [lead.id for lead in loaded.leads] == [f"ord{i}" for i in range(5)]

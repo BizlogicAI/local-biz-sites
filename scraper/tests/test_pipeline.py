@@ -2,17 +2,12 @@
 
 from __future__ import annotations
 
-import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from scraper.config import (
-    LEAD_STATUS_ANALYZED,
-    LEAD_STATUS_DEMO_GENERATED,
-    LEAD_STATUS_DISCOVERED,
-    QUALITY_THRESHOLD_DEMO,
     PipelineConfig,
 )
 from scraper.demo_generator import Demo, DemoGeneratorError

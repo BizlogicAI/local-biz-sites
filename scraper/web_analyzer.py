@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 import re
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 import httpx
 
@@ -118,6 +120,20 @@ class WebAnalyzer:
         """
         if not url.strip():
             raise WebAnalyzerError("URL cannot be empty")
+
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            raise WebAnalyzerError(f"Invalid URL scheme: {parsed.scheme}")
+
+        if parsed.hostname:
+            try:
+                ip = ipaddress.ip_address(parsed.hostname)
+                if ip.is_private or ip.is_loopback:
+                    raise WebAnalyzerError(
+                        f"Private/loopback address not allowed: {parsed.hostname}"
+                    )
+            except ValueError:
+                pass
 
         with httpx.Client(timeout=self._timeout, follow_redirects=True) as client:
             try:

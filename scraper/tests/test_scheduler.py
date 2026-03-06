@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import threading
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from scraper.config import AutonomousConfig, PipelineConfig, RetryConfig, ScheduleConfig
 from scraper.pipeline import SearchSpec
