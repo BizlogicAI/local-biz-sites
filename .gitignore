@@ -1,0 +1,31 @@
+# Environment & secrets
+.env
+.env.*
+
+# Lead data (contains business contact info)
+leads/*.csv
+leads/*.json
+!leads/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/
